@@ -23,11 +23,11 @@
   --surf2: #1e1c16;
   --b:     rgba(255,243,215,0.07);
   --b2:    rgba(255,243,215,0.13);
-  --ac:    #c9a87c;
+  --bg2:   #1a1a2e;
   --ag:    rgba(201,168,124,0.08);
-  --gr:    #7d9f74;
+  --n2:    #7d9f74;
   --t:     #e2d8c8;
-  --t2:    #8a7e6e;
+  --p:     #8a7e6e;
   --rd:    #a86060;
   --rdim:  rgba(168,96,96,0.10);
 }
@@ -46,7 +46,7 @@ html, body {
 
 body {
   font-family: var(--ui-font);
-  background: var(--bg);
+  background: linear-gradient(to top, var(--bg2) 0%, var(--bg) 100%);
   color: var(--t);
   font-size: 20px;
   line-height: 1.6;
@@ -65,13 +65,14 @@ body {
   min-width: 340px;
   max-width: 340px;
   height: 100vh;
-  background: var(--panel);
+  background: transparent;
   border-right: 1px solid var(--b);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   flex-shrink: 0;
   font-size: 14px;
+  position: relative;
 }
 
 .sb-logo {
@@ -199,7 +200,7 @@ body {
   transition: all .13s;
   text-align: center;
 }
-.reset-btn:hover { color: var(--t); border-color: var(--rd); background: var(--rdim); }
+.reset-btn:hover { background: var(--t); color: var(--bg); border-color: var(--t); }
 
 .sb-foot {
   padding: 10px 18px 14px;
@@ -215,6 +216,7 @@ body {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 /* ── COVER ── */
@@ -300,8 +302,8 @@ body {
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
-.s-num.g { color: var(--ac); }  /* done — n */
-.s-num.l { color: var(--gr); }  /* left — n2 */
+.s-num.g { color: var(--n); }  /* done — n */
+.s-num.l { color: var(--n2); }  /* left — n2 */
 
 .s-lbl {
   font-size: .6rem;
@@ -336,7 +338,7 @@ body {
 
 .s-prog-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--t2), #ffffff);
+  background: linear-gradient(90deg, var(--p), #ffffff);
   border-radius: 99px;
   transition: width .5s cubic-bezier(.4,0,.2,1);
 }
@@ -981,19 +983,26 @@ body {
 
 .confirm-btn {
   padding: 9px 20px;
-  background: var(--gr);
-  color: #fff;
-  border: none;
+  background: transparent;
+  color: var(--t);
+  border: 1px solid var(--t);
   border-radius: 8px;
   font-family: var(--ui-font);
   font-size: .8rem;
   font-weight: 500;
   cursor: pointer;
-  transition: opacity .13s, transform .1s;
+  transition: background .15s, color .15s, transform .1s;
 }
-.confirm-btn:hover    { opacity: .83; }
-.confirm-btn:active   { transform: scale(.97); }
-.confirm-btn:disabled { opacity: .22; cursor: not-allowed; transform: none; }
+.confirm-btn:not(:disabled) {
+  background: var(--t);
+  color: var(--bg);
+}
+.confirm-btn:not(:disabled):active { transform: scale(.97); }
+.confirm-btn:disabled {
+  opacity: .22;
+  cursor: not-allowed;
+  pointer-events: none;
+}
 
 .del-btn {
   padding: 8px 14px;
@@ -1006,7 +1015,7 @@ body {
   cursor: pointer;
   transition: all .13s;
 }
-.del-btn:hover { color: var(--rd); border-color: var(--rd); background: var(--rdim); }
+.del-btn:hover { background: var(--t); color: var(--bg); border-color: var(--t); }
 
 .asv {
   font-size: .67rem;
@@ -1054,7 +1063,7 @@ body {
   display: block;
   width: 20px;
   height: 1.5px;
-  background: var(--t2);
+  background: var(--p);
   border-radius: 99px;
   transition: all .2s;
 }
@@ -1979,7 +1988,7 @@ body {
     var custom = cfg.custom || {};
 
     // Apply theme swatch values
-    var cssProps = ['bg','panel','surf','surf2','b','b2','ac','ag','gr','t','t2','rd','rdim'];
+    var cssProps = ['bg','panel','surf','surf2','b','b2','n','ag','n2','t','p','rd','rdim'];
     cssProps.forEach(function (prop) {
       if (theme[prop]) root.style.setProperty('--' + prop, theme[prop]);
     });
@@ -1988,17 +1997,19 @@ body {
     if (custom.bg) {
       root.style.setProperty('--bg',    custom.bg);
       root.style.setProperty('--panel', custom.bg);
+      root.style.setProperty('--bg2',   shiftHex(custom.bg, -18));
     }
+    if (custom.bg2) { root.style.setProperty('--bg2', custom.bg2); }
     if (custom.t1) { root.style.setProperty('--t',  custom.t1); }
-    if (custom.t2) { root.style.setProperty('--t2', custom.t2); }
-    if (custom.ac) { root.style.setProperty('--ac', custom.ac); }
-    if (custom.gr) {
-      root.style.setProperty('--gr', custom.gr);
+    if (custom.p) { root.style.setProperty('--p', custom.p); }
+    if (custom.n) { root.style.setProperty('--n', custom.n); }
+    if (custom.n2) {
+      root.style.setProperty('--n2', custom.n2);
     }
 
     // Green stays independent — never overridden by accent color
-    var green = theme.gr || '#7d9f74';
-    root.style.setProperty('--gr', green);
+    var green = theme.n2 || '#7d9f74';
+    root.style.setProperty('--n2', green);
 
     root.style.setProperty('--ui-font', "'" + cfg.font + "', sans-serif");
     root.style.fontSize = cfg.size + 'px';
@@ -2034,17 +2045,18 @@ body {
     // Sync color pickers to current values
     var theme  = cfg.theme  || {};
     var custom = cfg.custom || {};
-    var bg = custom.bg || theme.bg || '#0c0b09';
-    var t1 = custom.t1 || theme.t  || '#ddd3c2';
-    var t2 = custom.t2 || theme.t2 || '#9a8e7e';
-    var ac = custom.ac || theme.ac || '#c9a87c';
-    var gr = custom.gr || theme.gr || '#7d9f74';
+    var bg  = custom.bg  || theme.bg  || '#0c0b09';
+    var bg2 = theme.bg2  || shiftHex(bg, -18);
+    var t1  = custom.t1  || theme.t   || '#ddd3c2';
+    var t2  = custom.p   || theme.p   || '#9a8e7e';
+    var ac  = custom.n   || theme.n   || '#c9a87c';
+    var gr  = custom.n2  || theme.n2  || '#7d9f74';
 
-    el('cp-bg').value = bg; el('ch-bg').value = bg;
-    el('cp-t1').value = t1; el('ch-t1').value = t1;
-    el('cp-t2').value = t2; el('ch-t2').value = t2;
-    el('cp-ac').value = ac; el('ch-ac').value = ac;
-    el('cp-gr').value = gr; el('ch-gr').value = gr;
+    el('cp-bg').value  = bg;  el('ch-bg').value  = bg;
+    el('cp-t1').value  = t1;  el('ch-t1').value  = t1;
+    el('cp-t2').value  = t2;  el('ch-t2').value  = t2;
+    el('cp-ac').value  = ac;  el('ch-ac').value  = ac;
+    el('cp-gr').value  = gr;  el('ch-gr').value  = gr;
 
     el('sm-backdrop').classList.add('open');
     el('settings-modal').classList.add('open');
@@ -2066,22 +2078,23 @@ body {
       cfg.theme.panel = val;
       cfg.theme.surf  = shiftHex(val, 12);
       cfg.theme.surf2 = shiftHex(val, 20);
+      cfg.theme.bg2   = shiftHex(val, -18);
     }
     if (key === 't1') {
       cfg.custom.t1 = val;
       cfg.theme.t   = val;
     }
-    if (key === 't2') {
-      cfg.custom.t2 = val;
-      cfg.theme.t2  = val;
+    if (key === 'p') {
+      cfg.custom.p = val;
+      cfg.theme.p  = val;
     }
-    if (key === 'ac') {
-      cfg.custom.ac = val;
-      cfg.theme.ac  = val;
+    if (key === 'n') {
+      cfg.custom.n = val;
+      cfg.theme.n  = val;
     }
-    if (key === 'gr') {
-      cfg.custom.gr = val;
-      cfg.theme.gr  = val;
+    if (key === 'n2') {
+      cfg.custom.n2 = val;
+      cfg.theme.n2  = val;
     }
 
     saveCfg();
@@ -2110,11 +2123,11 @@ body {
 
   // Color picker pairs (native picker + hex text input stay in sync)
   [
-    ['bg', 'cp-bg', 'ch-bg'],
-    ['t1', 'cp-t1', 'ch-t1'],
-    ['t2', 'cp-t2', 'ch-t2'],
-    ['ac', 'cp-ac', 'ch-ac'],
-    ['gr', 'cp-gr', 'ch-gr']
+    ['bg',  'cp-bg',  'ch-bg'],
+    ['t1',  'cp-t1',  'ch-t1'],
+    ['p',   'cp-t2',  'ch-t2'],
+    ['n',   'cp-ac',  'ch-ac'],
+    ['n2',  'cp-gr',  'ch-gr']
   ].forEach(function (row) {
     var key    = row[0];
     var pickId = row[1];
