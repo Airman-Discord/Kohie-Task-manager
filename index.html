@@ -907,6 +907,8 @@ body {
   font-size: .84rem;
   line-height: 1.7;
   resize: vertical;
+  -webkit-user-select: text;
+  user-select: text;
 }
 #d-notes::placeholder { color: var(--p); }
 #d-notes:disabled     { color: var(--t); cursor: default; resize: none; }
@@ -1099,9 +1101,9 @@ body {
   background: transparent;
   z-index: 199;
   opacity: 1;
-  transition: opacity .22s;
+  pointer-events: none;
 }
-.sb-overlay.open { opacity: 1; }
+.sb-overlay.open { pointer-events: none; }
 
 /* ── MOBILE RESPONSIVE ── */
 @media (max-width: 900px) {
@@ -1130,7 +1132,7 @@ body {
   .sidebar.mob-open { transform: translateX(0); }
 
   .sb-overlay       { display: block; pointer-events: none; }
-  .sb-overlay.open  { pointer-events: all; }
+  .sb-overlay.open  { pointer-events: none; }
 
   /* main takes full width since sidebar is out of flow */
   .main  { height: auto; flex: 1; width: 100%; }
@@ -1151,7 +1153,7 @@ body {
     padding-bottom: calc(14px + env(safe-area-inset-bottom));
   }
 
-  .settings-modal { width: 96vw; max-width: 96vw; max-height: 92vh; }
+  .settings-modal { width: 96vw; max-width: 96vw; max-height: 92vh; max-height: 92dvh; }
 }
 
 </style>
@@ -1772,9 +1774,20 @@ body {
       if (dragged) { e.stopImmediatePropagation(); dragged = false; }
     }, true);
 
-    card.addEventListener('mousedown', function (e) { if (e.button === 0) onStart(e.clientX); });
-    document.addEventListener('mousemove', function (e) { if (active) onMove(e.clientX); });
-    document.addEventListener('mouseup', onEnd);
+    card.addEventListener('mousedown', function (e) {
+      if (e.button === 0) {
+        onStart(e.clientX);
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+      }
+    });
+
+    function onMouseMove(e) { onMove(e.clientX); }
+    function onMouseUp() {
+      onEnd();
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    }
 
     card.addEventListener('touchstart', function (e) { onStart(e.touches[0].clientX); }, { passive: true });
     card.addEventListener('touchmove',  function (e) { onMove(e.touches[0].clientX);  }, { passive: true });
@@ -2247,6 +2260,13 @@ body {
     sidebarEl.classList.contains('mob-open') ? closeSidebar() : openSidebar();
   });
   sbOverlay.addEventListener('click', closeSidebar);
+
+  // Close sidebar when tapping main content on mobile
+  document.querySelector('.main').addEventListener('click', function () {
+    if (window.innerWidth <= 900 && sidebarEl.classList.contains('mob-open')) {
+      closeSidebar();
+    }
+  });
 
   // Close sidebar on nav/reset tap (mobile only)
   document.querySelectorAll('.nav-btn, .reset-btn').forEach(function (btn) {
