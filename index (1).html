@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kohie">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0c0b09">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%230c0b09'/%3E%3Cpolyline points='18,32 24,38 34,26' stroke='%23c9a87c' stroke-width='5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Cline x1='42' y1='32' x2='82' y2='32' stroke='white' stroke-width='5' stroke-linecap='round'/%3E%3Ccircle cx='26' cy='52' r='7' stroke='white' stroke-width='4.5' fill='none'/%3E%3Cline x1='42' y1='52' x2='82' y2='52' stroke='white' stroke-width='5' stroke-linecap='round'/%3E%3Ccircle cx='26' cy='72' r='7' stroke='white' stroke-width='4.5' fill='none'/%3E%3Cline x1='42' y1='72' x2='82' y2='72' stroke='white' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%230c0b09'/%3E%3Cpolyline points='18,32 24,38 34,26' stroke='%23c9a87c' stroke-width='5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Cline x1='42' y1='32' x2='82' y2='32' stroke='white' stroke-width='5' stroke-linecap='round'/%3E%3Ccircle cx='26' cy='52' r='7' stroke='white' stroke-width='4.5' fill='none'/%3E%3Cline x1='42' y1='52' x2='82' y2='52' stroke='white' stroke-width='5' stroke-linecap='round'/%3E%3Ccircle cx='26' cy='72' r='7' stroke='white' stroke-width='4.5' fill='none'/%3E%3Cline x1='42' y1='72' x2='82' y2='72' stroke='white' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;Kohie&quot;,&quot;short_name&quot;:&quot;Kohie&quot;,&quot;start_url&quot;:&quot;/&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;%230c0b09&quot;,&quot;theme_color&quot;:&quot;%230c0b09&quot;,&quot;icons&quot;:[{&quot;src&quot;:&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%230c0b09'/%3E%3Cpolyline points='18,32 24,38 34,26' stroke='%23c9a87c' stroke-width='5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Cline x1='42' y1='32' x2='82' y2='32' stroke='white' stroke-width='5' stroke-linecap='round'/%3E%3Ccircle cx='26' cy='52' r='7' stroke='white' stroke-width='4.5' fill='none'/%3E%3Cline x1='42' y1='52' x2='82' y2='52' stroke='white' stroke-width='5' stroke-linecap='round'/%3E%3Ccircle cx='26' cy='72' r='7' stroke='white' stroke-width='4.5' fill='none'/%3E%3Cline x1='42' y1='72' x2='82' y2='72' stroke='white' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E&quot;,&quot;sizes&quot;:&quot;any&quot;,&quot;type&quot;:&quot;image/svg+xml&quot;}]}">
+<title>Kohie</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&family=DM+Sans:wght@300;400;500&family=Lora:ital,wght@0,400;1,400&family=Sora:wght@300;400;500&family=Crimson+Pro:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- mobile topbar (hidden on desktop) -->
+<div class="mob-topbar" id="mob-topbar">
+  <button class="mob-hamburger" id="mob-hamburger" aria-label="Open menu">
+    <span></span><span></span><span></span>
+  </button>
+  <span class="mob-title" id="mob-title">my space</span>
+</div>
+
+<!-- sidebar overlay (mobile) -->
+<div class="sb-overlay" id="sb-overlay"></div>
+
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-logo">
+      <input class="sb-title" id="sb-title" type="text" value="my space" maxlength="40" spellcheck="false"/>
+      <span class="sb-dot" id="sb-dot"></span>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-sec">menu</div>
+      <button class="nav-btn active" id="nav-home">
+        <span class="nav-icon">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M7 1.5L1.5 6V12.5H5V8.5H9V12.5H12.5V6L7 1.5Z" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        home <span class="nb" id="nb-home"></span>
+      </button>
+      <div class="sb-sep"></div>
+      <button class="nav-btn" id="btn-settings">
+        <span class="nav-icon">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <circle cx="7" cy="7" r="2" stroke="currentColor" stroke-width="1.2" fill="none"/>
+            <path d="M7 1v1.5M7 11.5V13M1 7h1.5M11.5 7H13M2.9 2.9l1.1 1.1M10 10l1.1 1.1M2.9 11.1L4 10M10 4l1.1-1.1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        settings
+      </button>
+    </nav>
+    <div class="sb-reset">
+      <button class="reset-btn" id="btn-reset">reset completed</button>
+    </div>
+    <div class="sb-foot">keep it simple.</div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- cover -->
+    <div class="cover">
+      <div class="cov-img" id="cov-img"></div>
+      <div class="cov-btns">
+        <label class="cov-btn" for="cover-file">🖼 cover</label>
+        <button class="cov-btn" id="btn-rm-cover" style="display:none">✕ remove</button>
+        <input type="file" id="cover-file" accept="image/*"/>
+      </div>
+    </div>
+
+    <!-- summary bar -->
+    <div class="sum-bar">
+      <div class="sum-bar-inner">
+        <div class="s-stat">
+          <div class="s-num" id="s-total">0</div>
+          <div class="s-lbl">total</div>
+        </div>
+        <div class="s-sep"></div>
+        <div class="s-stat">
+          <div class="s-num ac" id="s-done">0</div>
+          <div class="s-lbl">done</div>
+        </div>
+        <div class="s-sep"></div>
+        <div class="s-stat">
+          <div class="s-num" id="s-left">0</div>
+          <div class="s-lbl">left</div>
+        </div>
+        <div class="s-sep"></div>
+        <div class="s-prog">
+          <div class="s-prog-lbl"><span>progress</span><span id="s-pct">0%</span></div>
+          <div class="s-prog-track"><div class="s-prog-fill" id="s-prog" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- home page -->
+    <div class="home-page" id="home-page">
+      <div class="home-inner">
+        <div class="add-row">
+          <div class="add-wrap">
+            <span class="add-plus">+</span>
+            <input type="text" id="task-input" placeholder="add a task…" autocomplete="off" autocapitalize="sentences"/>
+          </div>
+          <button class="add-btn" id="btn-add">Add</button>
+        </div>
+        <div class="list-hd">
+          <span class="list-hd-lbl">tasks</span>
+          <div class="list-hd-line"></div>
+          <span class="list-hd-ct" id="ct-pending">0</span>
+        </div>
+        <div class="task-list" id="pending-list"></div>
+        <div class="list-hd">
+          <span class="list-hd-lbl">completed</span>
+          <div class="list-hd-line"></div>
+          <span class="list-hd-ct" id="ct-done">0</span>
+        </div>
+        <div class="task-list" id="done-list"></div>
+      </div>
+    </div>
+
+    <!-- task detail -->
+    <div class="task-detail" id="panel">
+      <div class="td-topbar">
+        <button class="td-back" id="btn-back">← back</button>
+        <span class="panel-badge pending" id="p-badge">pending</span>
+      </div>
+      <div class="td-body">
+        <input type="text" id="d-name" spellcheck="false" placeholder="task name"/>
+        <div class="meta-grid">
+          <div class="meta-card"><div class="meta-lbl">started</div><div class="meta-val" id="m-start">—</div></div>
+          <div class="meta-card"><div class="meta-lbl">completed</div><div class="meta-val gr" id="m-end">—</div></div>
+        </div>
+        <div>
+          <div class="dlbl">proof photos <span style="text-transform:none;letter-spacing:0;color:var(--t4);font-style:italic">(required to complete)</span></div>
+          <div class="photo-req" id="photo-req">📷 add at least one photo to confirm complete</div>
+          <div class="photo-grid" id="photo-grid"></div>
+          <label class="upload-lbl" id="upload-lbl" for="d-photo-input">
+            <span style="font-size:14px">🖼</span> add photo
+            <input type="file" id="d-photo-input" accept="image/*" capture="environment" multiple/>
+          </label>
+        </div>
+        <div class="notes-box">
+          <div class="notes-inner-lbl">notes</div>
+          <textarea id="d-notes" placeholder="write anything about this task…"></textarea>
+        </div>
+        <div class="panel-foot">
+          <button class="confirm-btn" id="btn-confirm" disabled>✓ confirm complete</button>
+          <button class="del-btn" id="btn-del" style="display:none">delete task</button>
+          <span class="asv" id="asv">saved</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- settings modal -->
+<div class="settings-backdrop" id="sm-backdrop"></div>
+<div class="settings-modal" id="settings-modal">
+  <div class="sm-top">
+    <span class="sm-title">settings</span>
+    <button class="sm-close" id="btn-sm-close">✕</button>
+  </div>
+  <div class="sm-body">
+    <div class="sm-section">
+      <div class="sm-lbl">theme</div>
+      <div class="color-swatches" id="swatches">
+        <div class="swatch" title="Warm Dark"
+          data-bg="#0c0b09" data-panel="#111009" data-surf="#171510" data-surf2="#1e1c16"
+          data-b="rgba(255,243,215,0.07)" data-b2="rgba(255,243,215,0.13)"
+          data-ac="#c9a87c" data-ac2="#9e7a50" data-ag="rgba(201,168,124,0.08)"
+          data-gr="#7d9f74" data-gd="rgba(125,159,116,0.13)"
+          data-t="#ddd3c2" data-t2="#9a8e7e" data-t3="#5c5347" data-t4="#352f28"
+          data-rd="#a86060" data-rdim="rgba(168,96,96,0.10)"
+          style="background:linear-gradient(135deg,#c9a87c 50%,#0c0b09 50%)"></div>
+        <div class="swatch" title="Cool Slate"
+          data-bg="#0a0c10" data-panel="#0f1218" data-surf="#151820" data-surf2="#1c2028"
+          data-b="rgba(180,210,255,0.07)" data-b2="rgba(180,210,255,0.13)"
+          data-ac="#7faec8" data-ac2="#4f7fa0" data-ag="rgba(127,174,200,0.08)"
+          data-gr="#6a9e8a" data-gd="rgba(106,158,138,0.13)"
+          data-t="#c8d8e8" data-t2="#7e96a8" data-t3="#445566" data-t4="#263040"
+          data-rd="#a07080" data-rdim="rgba(160,112,128,0.10)"
+          style="background:linear-gradient(135deg,#7faec8 50%,#0a0c10 50%)"></div>
+        <div class="swatch" title="Dusk Purple"
+          data-bg="#0d0b12" data-panel="#120f18" data-surf="#19151f" data-surf2="#211c28"
+          data-b="rgba(220,200,255,0.07)" data-b2="rgba(220,200,255,0.13)"
+          data-ac="#b48fd8" data-ac2="#8a62b0" data-ag="rgba(180,143,216,0.08)"
+          data-gr="#7d9f74" data-gd="rgba(125,159,116,0.13)"
+          data-t="#ddd0f0" data-t2="#9080a8" data-t3="#574868" data-t4="#322840"
+          data-rd="#c07878" data-rdim="rgba(192,120,120,0.10)"
+          style="background:linear-gradient(135deg,#b48fd8 50%,#0d0b12 50%)"></div>
+        <div class="swatch" title="Forest"
+          data-bg="#090c09" data-panel="#0e110e" data-surf="#141814" data-surf2="#1a1f1a"
+          data-b="rgba(200,240,200,0.07)" data-b2="rgba(200,240,200,0.12)"
+          data-ac="#82b87a" data-ac2="#558050" data-ag="rgba(130,184,122,0.08)"
+          data-gr="#82b87a" data-gd="rgba(130,184,122,0.13)"
+          data-t="#ccd8c8" data-t2="#809078" data-t3="#4a5c48" data-t4="#2a3428"
+          data-rd="#a87070" data-rdim="rgba(168,112,112,0.10)"
+          style="background:linear-gradient(135deg,#82b87a 50%,#090c09 50%)"></div>
+        <div class="swatch" title="Rose Noir"
+          data-bg="#0f0a0b" data-panel="#150f10" data-surf="#1c1416" data-surf2="#241a1c"
+          data-b="rgba(255,200,210,0.07)" data-b2="rgba(255,200,210,0.13)"
+          data-ac="#d48a95" data-ac2="#a86070" data-ag="rgba(212,138,149,0.08)"
+          data-gr="#7d9f74" data-gd="rgba(125,159,116,0.13)"
+          data-t="#ead0d4" data-t2="#a08088" data-t3="#5c4448" data-t4="#382830"
+          data-rd="#d48a95" data-rdim="rgba(212,138,149,0.12)"
+          style="background:linear-gradient(135deg,#d48a95 50%,#0f0a0b 50%)"></div>
+        <div class="swatch" title="Midnight Amber"
+          data-bg="#080808" data-panel="#0e0d0b" data-surf="#141210" data-surf2="#1c1916"
+          data-b="rgba(255,200,100,0.06)" data-b2="rgba(255,200,100,0.12)"
+          data-ac="#d4a040" data-ac2="#a87820" data-ag="rgba(212,160,64,0.08)"
+          data-gr="#708860" data-gd="rgba(112,136,96,0.13)"
+          data-t="#e8dcc8" data-t2="#9a8868" data-t3="#585040" data-t4="#303028"
+          data-rd="#b06050" data-rdim="rgba(176,96,80,0.10)"
+          style="background:linear-gradient(135deg,#d4a040 50%,#080808 50%)"></div>
+      </div>
+    </div>
+    <div class="sm-section">
+      <div class="sm-lbl">font</div>
+      <select id="font-select" class="font-select">
+        <option value="DM Sans">DM Sans — default</option>
+        <option value="Sora">Sora — modern</option>
+        <option value="Lora">Lora — literary</option>
+        <option value="Crimson Pro">Crimson Pro — elegant</option>
+      </select>
+    </div>
+    <div class="sm-section">
+      <div class="sm-lbl">font size</div>
+      <div class="size-row">
+        <span style="font-size:.7rem;color:var(--t3)">A</span>
+        <input type="range" class="size-slider" id="size-slider" min="16" max="24" step="1" value="16"/>
+        <span style="font-size:1.1rem;color:var(--t3)">A</span>
+        <span class="size-val" id="size-val">16px</span>
+      </div>
+    </div>
+    <div class="sm-section">
+      <div class="sm-lbl">auto-reset completed</div>
+      <div class="opt-row" id="autoreset-opts">
+        <div class="opt-chip active" data-reset="off">off</div>
+        <div class="opt-chip" data-reset="daily">daily</div>
+        <div class="opt-chip" data-reset="weekly">weekly</div>
+      </div>
+    </div>
+    <div class="sm-section">
+      <div class="sm-lbl">sync across devices</div>
+      <input class="sync-field" id="sync-key" type="text" placeholder="JSONBin Master Key" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="margin-bottom:6px;"/>
+      <div class="sync-row" style="margin-bottom:6px;">
+        <input class="sync-field" id="sync-bin" type="text" placeholder="Bin ID" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+        <button class="sync-btn" id="btn-sync-new">new bin</button>
+      </div>
+      <div class="sync-row" style="margin-bottom:8px;">
+        <button class="sync-btn ac" id="btn-sync-push">↑ push</button>
+        <button class="sync-btn" id="btn-sync-pull">↓ pull</button>
+        <button class="sync-btn" id="btn-sync-copy">copy ID</button>
+        <button class="sync-btn" id="btn-sync-export">export</button>
+        <button class="sync-btn" id="btn-sync-import">import</button>
+        <input type="file" id="sync-file-input" accept=".json,application/json" style="display:none"/>
+      </div>
+      <div class="sync-row" style="gap:8px;">
+        <div class="sync-dot" id="sync-dot"></div>
+        <span class="sync-msg" id="sync-msg">no sync configured</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
