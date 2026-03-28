@@ -47,6 +47,18 @@
         home <span class="nb" id="nb-home"></span>
       </button>
       <div class="sb-sep"></div>
+      <button class="nav-btn" id="nav-calendar">
+        <span class="nav-icon">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <rect x="1.5" y="2.5" width="11" height="10" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/>
+            <line x1="1.5" y1="5.5" x2="12.5" y2="5.5" stroke="currentColor" stroke-width="1.2"/>
+            <line x1="4.5" y1="1.5" x2="4.5" y2="3.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+            <line x1="9.5" y1="1.5" x2="9.5" y2="3.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        calendar
+      </button>
+      <div class="sb-sep"></div>
       <button class="nav-btn" id="btn-settings">
         <span class="nav-icon">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -123,6 +135,69 @@
           <span class="list-hd-ct" id="ct-done">0</span>
         </div>
         <div class="task-list" id="done-list"></div>
+      </div>
+    </div>
+
+    <!-- widget + tasks wrapper -->
+    <div class="content-row" id="content-row">
+
+      <!-- LEFT WIDGET PANEL -->
+      <div class="widget-panel" id="widget-panel">
+        <!-- Pixel Weather Canvas -->
+        <div class="wg-card wg-weather">
+          <canvas id="weather-canvas" width="160" height="100"></canvas>
+          <div class="wg-weather-info">
+            <div class="wg-temp" id="wg-temp">--°</div>
+            <div class="wg-desc" id="wg-desc">loading…</div>
+          </div>
+        </div>
+        <!-- Today Date -->
+        <div class="wg-card wg-date">
+          <div class="wg-day" id="wg-day"></div>
+          <div class="wg-datenum" id="wg-datenum"></div>
+          <div class="wg-month" id="wg-month"></div>
+        </div>
+      </div>
+
+      <!-- HOME PAGE -->
+      <div class="home-page" id="home-page">
+        <div class="home-inner">
+          <div class="add-row">
+            <div class="add-wrap">
+              <span class="add-plus">+</span>
+              <input type="text" id="task-input" placeholder="add a task…" autocomplete="off" autocapitalize="sentences"/>
+            </div>
+            <button class="add-btn" id="btn-add">Add</button>
+          </div>
+          <div class="list-hd">
+            <span class="list-hd-lbl">tasks</span>
+            <div class="list-hd-line"></div>
+            <span class="list-hd-ct" id="ct-pending">0</span>
+          </div>
+          <div class="task-list" id="pending-list"></div>
+          <div class="list-hd">
+            <span class="list-hd-lbl">completed</span>
+            <div class="list-hd-line"></div>
+            <span class="list-hd-ct" id="ct-done">0</span>
+          </div>
+          <div class="task-list" id="done-list"></div>
+        </div>
+      </div>
+
+    </div><!-- end content-row -->
+
+    <!-- CALENDAR PAGE -->
+    <div class="cal-page hidden" id="cal-page">
+      <div class="cal-inner">
+        <div class="cal-header">
+          <button class="cal-nav" id="cal-prev">‹</button>
+          <span class="cal-title" id="cal-title"></span>
+          <button class="cal-nav" id="cal-next">›</button>
+        </div>
+        <div class="cal-grid-head">
+          <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
       </div>
     </div>
 
