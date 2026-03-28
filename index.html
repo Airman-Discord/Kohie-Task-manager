@@ -144,7 +144,7 @@
           <div class="photo-grid" id="photo-grid"></div>
           <label class="upload-lbl" id="upload-lbl" for="d-photo-input">
             <span style="font-size:14px">🖼</span> add photo
-            <input type="file" id="d-photo-input" accept="image/*" multiple/>
+            <input type="file" id="d-photo-input" accept="image/*" capture="environment" multiple/>
           </label>
         </div>
         <div class="notes-box">
@@ -251,9 +251,9 @@
     </div>
     <div class="sm-section">
       <div class="sm-lbl">sync across devices</div>
-      <input class="sync-field" id="sync-key" type="text" placeholder="JSONBin Master Key" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="margin-bottom:6px;"/>
+      <input class="sync-field" id="sync-key" type="text" placeholder="GitHub Personal Access Token" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="margin-bottom:6px;"/>
       <div class="sync-row" style="margin-bottom:6px;">
-        <input class="sync-field" id="sync-bin" type="text" placeholder="Bin ID" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+        <input class="sync-field" id="sync-bin" type="text" placeholder="Gist ID" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
         <button class="sync-btn" id="btn-sync-new">new bin</button>
       </div>
       <div class="sync-row" style="margin-bottom:8px;">

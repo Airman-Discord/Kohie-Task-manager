@@ -664,11 +664,13 @@ sbOverlay.addEventListener('click', closeSidebar);
 })();
 
 /* ─────────────────────────────────────────
-   SYNC  (JSONBin.io — auto push + 30s pull)
-   Master Key + Bin ID saved to localStorage.
+/* ─────────────────────────────────────────
+   SYNC  (GitHub Gist — auto push + 30s pull)
+   GitHub PAT + Gist ID saved to localStorage.
    Syncs tasks, title, cover, AND cfg (theme/font/etc).
 ───────────────────────────────────────── */
-var JBIN          = 'https://api.jsonbin.io/v3';
+var GIST_API      = 'https://api.github.com/gists';
+var GIST_FILENAME = 'kohie-data.json';
 var syncPushTimer = null;
 var syncPollTimer = null;
 var syncBusy      = false;
@@ -679,6 +681,15 @@ function syncReady() { return !!(syncKey() && syncBin()); }
 
 function syncPayload() {
   return { kohie: S, cfg: cfg, savedAt: Date.now() };
+}
+
+function gistHeaders() {
+  return {
+    'Content-Type':  'application/json',
+    'Authorization': 'Bearer ' + syncKey(),
+    'Accept':        'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28'
+  };
 }
 
 function applySyncData(data) {
@@ -715,10 +726,12 @@ function syncPush(silent) {
   if (!syncReady() || syncBusy) return;
   syncBusy = true;
   if (!silent) setSyncMsg('pushing…', 'spin');
-  fetch(JBIN + '/b/' + syncBin(), {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', 'X-Master-Key': syncKey() },
-    body: JSON.stringify(syncPayload())
+  fetch(GIST_API + '/' + syncBin(), {
+    method: 'PATCH',
+    headers: gistHeaders(),
+    body: JSON.stringify({
+      files: { 'kohie-data.json': { content: JSON.stringify(syncPayload()) } }
+    })
   })
   .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
   .then(function () {
@@ -728,12 +741,11 @@ function syncPush(silent) {
   .catch(function (e) {
     syncBusy = false;
     var msg = String(e);
-    var code = msg.match(/\d{3}/);
-    if (msg.indexOf('401') !== -1) setSyncMsg('push failed — invalid Master Key (401)', 'err');
-    else if (msg.indexOf('403') !== -1) setSyncMsg('push failed — forbidden, check key (403)', 'err');
-    else if (msg.indexOf('404') !== -1) setSyncMsg('push failed — bin not found (404)', 'err');
-    else if (msg.indexOf('429') !== -1) setSyncMsg('push failed — rate limited, wait a moment (429)', 'err');
-    else setSyncMsg('push failed — ' + (code ? 'error ' + code[0] : 'check connection'), 'err');
+    if      (msg.indexOf('401') !== -1) setSyncMsg('push failed — invalid token (401)', 'err');
+    else if (msg.indexOf('403') !== -1) setSyncMsg('push failed — token needs gist scope (403)', 'err');
+    else if (msg.indexOf('404') !== -1) setSyncMsg('push failed — gist not found (404)', 'err');
+    else if (msg.indexOf('422') !== -1) setSyncMsg('push failed — invalid data (422)', 'err');
+    else setSyncMsg('push failed — check connection', 'err');
   });
 }
 
@@ -741,12 +753,13 @@ function syncPull(silent) {
   if (!syncReady() || syncBusy) return;
   syncBusy = true;
   if (!silent) setSyncMsg('pulling…', 'spin');
-  fetch(JBIN + '/b/' + syncBin() + '/latest', {
-    headers: { 'X-Bin-Meta': 'false', 'X-Master-Key': syncKey() }
-  })
+  fetch(GIST_API + '/' + syncBin(), { headers: gistHeaders() })
   .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-  .then(function (data) {
+  .then(function (gist) {
     syncBusy = false;
+    var file = gist.files && gist.files[GIST_FILENAME];
+    if (!file || !file.content) throw new Error('missing file');
+    var data = JSON.parse(file.content);
     var remoteSaved = data.savedAt || 0;
     var localSaved  = S.lastSaved  || 0;
     if (remoteSaved > localSaved) {
@@ -759,8 +772,8 @@ function syncPull(silent) {
   .catch(function (e) {
     syncBusy = false;
     var msg = String(e);
-    if (msg.indexOf('404') !== -1)      setSyncMsg('bin not found', 'err');
-    else if (msg.indexOf('401') !== -1) setSyncMsg('wrong key or bin ID', 'err');
+    if      (msg.indexOf('404') !== -1) setSyncMsg('gist not found (404)', 'err');
+    else if (msg.indexOf('401') !== -1) setSyncMsg('invalid token (401)', 'err');
     else if (!silent)                   setSyncMsg('pull failed — check connection', 'err');
   });
 }
@@ -784,43 +797,52 @@ function startSyncPoll() {
 
 el('btn-sync-new').addEventListener('click', function () {
   var key = syncKey();
-  if (!key) { setSyncMsg('paste your Master Key first', 'err'); return; }
-  setSyncMsg('creating bin…', 'spin');
-  fetch(JBIN + '/b', {
+  if (!key) { setSyncMsg('paste your GitHub token first', 'err'); return; }
+  setSyncMsg('creating gist…', 'spin');
+  fetch(GIST_API, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Master-Key': key, 'X-Bin-Name': 'kohie', 'X-Bin-Private': 'false' },
-    body: JSON.stringify(syncPayload())
+    headers: gistHeaders(),
+    body: JSON.stringify({
+      description: 'kohie task sync',
+      public: false,
+      files: { 'kohie-data.json': { content: JSON.stringify(syncPayload()) } }
+    })
   })
-  .then(function (r) { return r.json(); })
+  .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
   .then(function (data) {
-    if (!data.metadata || !data.metadata.id) throw new Error('no id');
-    cfg.syncId     = data.metadata.id;
+    if (!data.id) throw new Error('no id');
+    cfg.syncId     = data.id;
     cfg.syncApiKey = key;
     saveCfg();
     el('sync-bin').value = cfg.syncId;
-    setSyncMsg('bin created — auto-sync active ✓', 'ok');
+    setSyncMsg('private gist created — auto-sync active ✓', 'ok');
     startSyncPoll();
   })
-  .catch(function () { setSyncMsg('failed — check your Master Key', 'err'); });
+  .catch(function (e) {
+    var msg = String(e);
+    if      (msg.indexOf('401') !== -1) setSyncMsg('failed — invalid token (401)', 'err');
+    else if (msg.indexOf('403') !== -1) setSyncMsg('failed — token needs gist scope (403)', 'err');
+    else setSyncMsg('failed — check your token', 'err');
+  });
 });
 
 el('btn-sync-push').addEventListener('click', function () {
-  if (!syncBin()) { setSyncMsg('enter a Bin ID first', 'err'); return; }
-  if (!syncKey()) { setSyncMsg('enter your Master Key first', 'err'); return; }
+  if (!syncBin()) { setSyncMsg('enter a Gist ID first', 'err'); return; }
+  if (!syncKey()) { setSyncMsg('enter your GitHub token first', 'err'); return; }
   syncPush(false);
 });
 
 el('btn-sync-pull').addEventListener('click', function () {
-  if (!syncBin()) { setSyncMsg('enter a Bin ID first', 'err'); return; }
-  if (!syncKey()) { setSyncMsg('enter your Master Key first', 'err'); return; }
+  if (!syncBin()) { setSyncMsg('enter a Gist ID first', 'err'); return; }
+  if (!syncKey()) { setSyncMsg('enter your GitHub token first', 'err'); return; }
   syncPull(false);
 });
 
 el('btn-sync-copy').addEventListener('click', function () {
   var id = syncBin();
-  if (!id) { setSyncMsg('no Bin ID to copy', 'err'); return; }
+  if (!id) { setSyncMsg('no Gist ID to copy', 'err'); return; }
   navigator.clipboard.writeText(id).then(function () {
-    setSyncMsg('Bin ID copied ✓', 'ok');
+    setSyncMsg('Gist ID copied ✓', 'ok');
   }).catch(function () {
     el('sync-bin').select();
     document.execCommand('copy');
@@ -850,11 +872,11 @@ el('sync-file-input').addEventListener('change', function (e) {
 });
 
 el('sync-key').addEventListener('input', function () {
-  cfg.syncApiKey = this.value.trim(); saveCfg();
+  cfg.syncApiKey = this.value.replace(/[\u2018\u2019\u201C\u201D\s]/g, ''); saveCfg();
   if (syncReady()) { setSyncMsg('auto-sync active', 'ok'); startSyncPoll(); }
 });
 el('sync-bin').addEventListener('input', function () {
-  cfg.syncId = this.value.trim(); saveCfg();
+  cfg.syncId = this.value.replace(/[\u2018\u2019\u201C\u201D\s]/g, ''); saveCfg();
   if (syncReady()) { setSyncMsg('auto-sync active', 'ok'); startSyncPoll(); }
 });
 
@@ -862,10 +884,11 @@ function initSyncUI() {
   el('sync-key').value = cfg.syncApiKey || '';
   el('sync-bin').value = cfg.syncId     || '';
   setSyncMsg(
-    syncReady() ? 'auto-sync active' : 'enter key + bin ID to enable',
+    syncReady() ? 'auto-sync active' : 'enter token + gist ID to enable',
     syncReady() ? 'ok' : ''
   );
 }
+
 
 /* ─────────────────────────────────────────
    BOOT
