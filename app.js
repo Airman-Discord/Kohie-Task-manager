@@ -680,7 +680,10 @@ function syncBin()   { return (cfg.syncId     || '').replace(/[\u2018\u2019\u201
 function syncReady() { return !!(syncKey() && syncBin()); }
 
 function syncPayload() {
-  return { kohie: S, cfg: cfg, savedAt: Date.now() };
+  var safeCfg = Object.assign({}, cfg);
+  delete safeCfg.syncApiKey;
+  delete safeCfg.syncId;
+  return { kohie: S, cfg: safeCfg, savedAt: Date.now() };
 }
 
 function gistHeaders() {
