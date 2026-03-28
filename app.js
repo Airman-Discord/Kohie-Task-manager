@@ -673,8 +673,8 @@ var syncPushTimer = null;
 var syncPollTimer = null;
 var syncBusy      = false;
 
-function syncKey()   { return (cfg.syncApiKey || '').trim(); }
-function syncBin()   { return (cfg.syncId     || '').trim(); }
+function syncKey()   { return (cfg.syncApiKey || '').replace(/[\u2018\u2019\u201C\u201D\s]/g, ''); }
+function syncBin()   { return (cfg.syncId     || '').replace(/[\u2018\u2019\u201C\u201D\s]/g, ''); }
 function syncReady() { return !!(syncKey() && syncBin()); }
 
 function syncPayload() {
@@ -728,12 +728,12 @@ function syncPush(silent) {
   .catch(function (e) {
     syncBusy = false;
     var msg = String(e);
-    setSyncMsg(
-      (msg.indexOf('401') !== -1 || msg.indexOf('403') !== -1)
-        ? 'wrong key or bin ID'
-        : 'push failed — check connection',
-      'err'
-    );
+    var code = msg.match(/\d{3}/);
+    if (msg.indexOf('401') !== -1) setSyncMsg('push failed — invalid Master Key (401)', 'err');
+    else if (msg.indexOf('403') !== -1) setSyncMsg('push failed — forbidden, check key (403)', 'err');
+    else if (msg.indexOf('404') !== -1) setSyncMsg('push failed — bin not found (404)', 'err');
+    else if (msg.indexOf('429') !== -1) setSyncMsg('push failed — rate limited, wait a moment (429)', 'err');
+    else setSyncMsg('push failed — ' + (code ? 'error ' + code[0] : 'check connection'), 'err');
   });
 }
 
