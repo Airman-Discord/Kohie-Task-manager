@@ -48,7 +48,6 @@ var cfg = loadJSON(CFG_KEY, {});
 if (!cfg.font)      cfg.font      = 'DM Sans';
 if (!cfg.size)      cfg.size      = 16;
 if (!cfg.autoreset) cfg.autoreset = 'off';
-if (!cfg.city) cfg.city = '';
 if (!cfg.lastReset) cfg.lastReset = 0;
 if (!cfg.theme || !cfg.theme.bg) cfg.theme = DEFAULT_THEME;
 
@@ -380,12 +379,7 @@ function renderPhotos(task, locked) {
 
 /* panel event listeners */
 el('btn-back').addEventListener('click', function () { closePanel(); });
-el('nav-home').addEventListener('click', function () {
-  closePanel();
-  showPage('home');
-  document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('active');});
-  el('nav-home').classList.add('active');
-});
+el('nav-home').addEventListener('click',  function () { closePanel(); });
 
 el('d-name').addEventListener('input', function () {
   var t = gt(activePanelId);
@@ -398,8 +392,6 @@ el('d-notes').addEventListener('input', function () {
   var t = gt(activePanelId);
   if (!t || t.locked) return;
   t.notes = this.value;
-  this.style.height = 'auto';
-  this.style.height = Math.min(this.scrollHeight, 300) + 'px';
   saveData(); flashSave();
 });
 
@@ -527,7 +519,6 @@ function openSettings() {
     c.classList.toggle('active', c.dataset.reset === cfg.autoreset);
   });
   initSyncUI();
-  initWeatherCityUI();
   el('sm-backdrop').style.display = 'block';
   requestAnimationFrame(function () {
     el('sm-backdrop').classList.add('open');
@@ -903,324 +894,6 @@ function initSyncUI() {
 
 
 /* ─────────────────────────────────────────
-   PAGE NAVIGATION
-───────────────────────────────────────── */
-function showPage(page) {
-  var contentRow = el('content-row');
-  var calPage    = el('cal-page');
-  var panel      = el('panel');
-  if (page === 'home') {
-    if (contentRow) contentRow.style.display = '';
-    if (calPage)    calPage.classList.add('hidden');
-    if (panel)      panel.classList.remove('open');
-    el('home-page').classList.remove('hidden');
-  } else if (page === 'calendar') {
-    if (contentRow) contentRow.style.display = '';
-    el('home-page').classList.add('hidden');
-    if (calPage)    calPage.classList.remove('hidden');
-    if (panel)      panel.classList.remove('open');
-    renderCalendar();
-  }
-}
-
-el('nav-calendar').addEventListener('click', function () {
-  showPage('calendar');
-  document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('active');});
-  el('nav-calendar').classList.add('active');
-  if (window.innerWidth <= 680) closeSidebar();
-});
-
-/* ─────────────────────────────────────────
-   CALENDAR
-───────────────────────────────────────── */
-var calYear  = new Date().getFullYear();
-var calMonth = new Date().getMonth();
-
-function renderCalendar() {
-  var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  el('cal-title').textContent = MONTHS[calMonth] + ' ' + calYear;
-
-  var first   = new Date(calYear, calMonth, 1).getDay();
-  var daysIn  = new Date(calYear, calMonth + 1, 0).getDate();
-  var today   = new Date();
-  var grid    = el('cal-grid');
-  grid.innerHTML = '';
-
-  // task dates set for dot indicators
-  var taskDates = {};
-  S.tasks.forEach(function(t) {
-    var d = new Date(t.created);
-    if (d.getFullYear() === calYear && d.getMonth() === calMonth)
-      taskDates[d.getDate()] = true;
-  });
-
-  // prev month filler
-  var prevDays = new Date(calYear, calMonth, 0).getDate();
-  for (var i = first - 1; i >= 0; i--) {
-    var d = document.createElement('div');
-    d.className = 'cal-day other-month';
-    d.textContent = prevDays - i;
-    grid.appendChild(d);
-  }
-  // current month
-  for (var day = 1; day <= daysIn; day++) {
-    var d = document.createElement('div');
-    d.className = 'cal-day';
-    if (day === today.getDate() && calMonth === today.getMonth() && calYear === today.getFullYear())
-      d.classList.add('today');
-    if (taskDates[day]) d.classList.add('has-task');
-    d.textContent = day;
-    grid.appendChild(d);
-  }
-  // next month filler
-  var total = grid.children.length;
-  var remaining = total % 7 === 0 ? 0 : 7 - (total % 7);
-  for (var n = 1; n <= remaining; n++) {
-    var d = document.createElement('div');
-    d.className = 'cal-day other-month';
-    d.textContent = n;
-    grid.appendChild(d);
-  }
-}
-
-el('cal-prev').addEventListener('click', function () {
-  calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; }
-  renderCalendar();
-});
-el('cal-next').addEventListener('click', function () {
-  calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; }
-  renderCalendar();
-});
-
-/* ─────────────────────────────────────────
-   DATE WIDGET
-───────────────────────────────────────── */
-function updateDateWidget() {
-  var DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  var now    = new Date();
-  el('wg-day').textContent     = DAYS[now.getDay()];
-  el('wg-datenum').textContent = now.getDate();
-  el('wg-month').textContent   = MONTHS[now.getMonth()] + ' ' + now.getFullYear();
-}
-
-/* ─────────────────────────────────────────
-   PIXEL WEATHER CANVAS
-───────────────────────────────────────── */
-var weatherAnimFrame = null;
-var weatherState     = { type: 'clear-day', particles: [] };
-
-function initParticles(type) {
-  var particles = [];
-  if (type === 'rain' || type === 'drizzle') {
-    for (var i = 0; i < 18; i++) {
-      particles.push({ x: Math.random() * 160, y: Math.random() * 100, speed: 1.5 + Math.random() * 2, len: 4 + Math.random() * 4 });
-    }
-  } else if (type === 'snow') {
-    for (var i = 0; i < 14; i++) {
-      particles.push({ x: Math.random() * 160, y: Math.random() * 100, speed: 0.4 + Math.random() * 0.6, drift: (Math.random() - 0.5) * 0.4 });
-    }
-  } else if (type === 'clear-night') {
-    for (var i = 0; i < 12; i++) {
-      particles.push({ x: 10 + Math.random() * 140, y: 8 + Math.random() * 40, twinkle: Math.random() * Math.PI * 2, size: Math.random() > 0.7 ? 2 : 1 });
-    }
-  }
-  return particles;
-}
-
-function drawPixelCloud(ctx, x, y, w, h, col) {
-  ctx.fillStyle = col;
-  // simple pixel cloud shape
-  var px = Math.round(w / 16);
-  var shape = [
-    [0,1,1,0,0,0,0,0,0,0,0,0,0,1,1,0],
-    [1,1,1,1,0,0,1,1,1,0,0,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
-    [0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
-  ];
-  shape.forEach(function(row, ry) {
-    row.forEach(function(cell, rx) {
-      if (cell) ctx.fillRect(x + rx * px, y + ry * px, px, px);
-    });
-  });
-}
-
-function drawPixelSun(ctx, x, y, r, col) {
-  ctx.fillStyle = col;
-  for (var dy = -r; dy <= r; dy++) {
-    for (var dx = -r; dx <= r; dx++) {
-      if (dx * dx + dy * dy <= r * r) ctx.fillRect(x + dx, y + dy, 1, 1);
-    }
-  }
-  // rays
-  var rays = [[0,-1],[1,-1],[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1]];
-  rays.forEach(function(ray) {
-    for (var i = r + 2; i <= r + 6; i++) {
-      ctx.fillRect(x + ray[0] * i, y + ray[1] * i, 1, 1);
-    }
-  });
-}
-
-function drawPixelMoon(ctx, x, y, r, col) {
-  ctx.fillStyle = col;
-  for (var dy = -r; dy <= r; dy++) {
-    for (var dx = -r; dx <= r; dx++) {
-      if (dx * dx + dy * dy <= r * r) {
-        var ox = dx + Math.round(r * 0.4), oy = dy - Math.round(r * 0.2);
-        if (ox * ox + oy * oy > (r * 0.75) * (r * 0.75)) ctx.fillRect(x + dx, y + dy, 1, 1);
-      }
-    }
-  }
-}
-
-function animateWeather() {
-  var canvas = el('weather-canvas');
-  if (!canvas) return;
-  var ctx  = canvas.getContext('2d');
-  var W    = canvas.width, H = canvas.height;
-  var type = weatherState.type;
-  var p    = weatherState.particles;
-  var ac   = getComputedStyle(document.documentElement).getPropertyValue('--ac').trim() || '#c9a87c';
-  var t2   = getComputedStyle(document.documentElement).getPropertyValue('--t2').trim() || '#9a8e7e';
-  var t3   = getComputedStyle(document.documentElement).getPropertyValue('--t3').trim() || '#5c5347';
-  var surf = getComputedStyle(document.documentElement).getPropertyValue('--surf').trim() || '#171510';
-
-  ctx.clearRect(0, 0, W, H);
-
-  if (type === 'clear-day') {
-    drawPixelSun(ctx, W/2, H/2 - 8, 14, ac);
-    drawPixelCloud(ctx, 60, H - 28, W - 60, 20, t3 + '88');
-
-  } else if (type === 'clear-night') {
-    drawPixelMoon(ctx, W/2 - 10, H/2 - 10, 13, t2);
-    p.forEach(function(star) {
-      star.twinkle += 0.04;
-      ctx.globalAlpha = 0.4 + 0.6 * Math.abs(Math.sin(star.twinkle));
-      ctx.fillStyle = '#fff';
-      ctx.fillRect(star.x, star.y, star.size, star.size);
-    });
-    ctx.globalAlpha = 1;
-
-  } else if (type === 'cloudy' || type === 'fog') {
-    drawPixelCloud(ctx, 10, 18, 100, 34, t2);
-    drawPixelCloud(ctx, 55, 36, 90, 30, t3);
-
-  } else if (type === 'partly-cloudy-day') {
-    drawPixelSun(ctx, 30, 28, 11, ac);
-    drawPixelCloud(ctx, 40, 22, 110, 36, t2);
-
-  } else if (type === 'partly-cloudy-night') {
-    drawPixelMoon(ctx, 28, 26, 11, t2);
-    drawPixelCloud(ctx, 38, 24, 110, 36, t3);
-
-  } else if (type === 'rain' || type === 'drizzle') {
-    drawPixelCloud(ctx, 10, 8, W - 10, 30, t2);
-    ctx.fillStyle = '#7aafc8';
-    p.forEach(function(drop) {
-      drop.y += drop.speed;
-      if (drop.y > H) drop.y = -drop.len;
-      ctx.fillRect(Math.round(drop.x), Math.round(drop.y), 1, drop.len);
-    });
-
-  } else if (type === 'snow') {
-    drawPixelCloud(ctx, 10, 8, W - 10, 30, t2);
-    ctx.fillStyle = '#c8e0f0';
-    p.forEach(function(flake) {
-      flake.y += flake.speed;
-      flake.x += flake.drift;
-      if (flake.y > H) { flake.y = -4; flake.x = Math.random() * W; }
-      ctx.fillRect(Math.round(flake.x), Math.round(flake.y), 2, 2);
-    });
-
-  } else if (type === 'thunder') {
-    drawPixelCloud(ctx, 10, 8, W - 10, 30, t3);
-    // lightning bolt pixel art
-    ctx.fillStyle = ac;
-    [[W/2+2,38],[W/2,44],[W/2+4,44],[W/2,56]].forEach(function(pt,i,arr) {
-      if (i < arr.length-1) {
-        ctx.fillRect(pt[0], pt[1], 2, arr[i+1][1] - pt[1]);
-      }
-    });
-  }
-
-  weatherAnimFrame = requestAnimationFrame(animateWeather);
-}
-
-function weatherTypeFromCode(code, isDay) {
-  if (code === 0) return isDay ? 'clear-day' : 'clear-night';
-  if (code <= 2)  return isDay ? 'partly-cloudy-day' : 'partly-cloudy-night';
-  if (code <= 3)  return 'cloudy';
-  if (code <= 49) return 'fog';
-  if (code <= 57) return 'drizzle';
-  if (code <= 67) return 'rain';
-  if (code <= 77) return 'snow';
-  if (code <= 82) return 'rain';
-  if (code <= 86) return 'snow';
-  return 'thunder';
-}
-
-function weatherDescFromCode(code) {
-  if (code === 0)  return 'clear sky';
-  if (code <= 2)   return 'partly cloudy';
-  if (code <= 3)   return 'overcast';
-  if (code <= 49)  return 'foggy';
-  if (code <= 57)  return 'drizzle';
-  if (code <= 67)  return 'rain';
-  if (code <= 77)  return 'snow';
-  if (code <= 82)  return 'showers';
-  if (code <= 86)  return 'heavy snow';
-  return 'thunderstorm';
-}
-
-function fetchWeather() {
-  var city = (cfg.city || '').trim();
-  if (!city) {
-    el('wg-temp').textContent = '--°';
-    el('wg-desc').textContent = 'set city in settings';
-    weatherState.type = 'clear-day';
-    weatherState.particles = [];
-    return;
-  }
-  // geocode city
-  fetch('https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(city) + '&count=1&language=en&format=json')
-  .then(function(r){ return r.json(); })
-  .then(function(geo) {
-    if (!geo.results || !geo.results[0]) { el('wg-desc').textContent = 'city not found'; return; }
-    var lat = geo.results[0].latitude, lon = geo.results[0].longitude;
-    return fetch('https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&current=temperature_2m,weather_code,is_day&temperature_unit=celsius');
-  })
-  .then(function(r){ return r && r.json(); })
-  .then(function(data) {
-    if (!data || !data.current) return;
-    var cur    = data.current;
-    var temp   = Math.round(cur.temperature_2m);
-    var code   = cur.weather_code;
-    var isDay  = cur.is_day === 1;
-    var type   = weatherTypeFromCode(code, isDay);
-    el('wg-temp').textContent = temp + '°C';
-    el('wg-desc').textContent = weatherDescFromCode(code);
-    weatherState.type      = type;
-    weatherState.particles = initParticles(type);
-  })
-  .catch(function() { el('wg-desc').textContent = 'weather unavailable'; });
-}
-
-/* ─────────────────────────────────────────
-   CITY SETTING
-───────────────────────────────────────── */
-el('weather-city').addEventListener('input', function () {
-  cfg.city = this.value; saveCfg();
-});
-el('weather-city').addEventListener('change', function () {
-  fetchWeather();
-});
-
-function initWeatherCityUI() {
-  el('weather-city').value = cfg.city || '';
-}
-
-/* ─────────────────────────────────────────
    BOOT
 ───────────────────────────────────────── */
 applyConfig();
@@ -1228,10 +901,5 @@ checkAutoReset();
 render();
 startSyncPoll();
 if (syncReady()) syncPull(true);
-updateDateWidget();
-setInterval(updateDateWidget, 60000);
-fetchWeather();
-setInterval(fetchWeather, 600000);
-animateWeather();
 
 })();
